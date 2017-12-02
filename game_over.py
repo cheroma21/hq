@@ -15,7 +15,7 @@ def main():
 		"thinking": False
 	}
 
-	url = "https://hq-hack.firebaseio.com/q1.json"
+	url = "https://YOUR_PROJECT_ID.firebaseio.com/q1.json"
 	r = requests.put(url, data=json.dumps(data))
 	print r.text
 

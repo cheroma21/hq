@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-36404846-1"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-36404846-1');
+	</script>
+
+
+	<title>HQ Answers</title>
+	<style type="text/css">
+	
+	body {
+		background-color: #fff;
+		font-family: "Avenir-Next", Arial, sans-serif;
+	}
+
+	div.iphone {
+		padding: 14px;
+		background-color: #151515;
+		position:absolute;
+		top:50%;
+		left:50%;
+		-ms-transform: translateX(-50%) translateY(-50%);
+		-webkit-transform: translate(-50%,-50%);
+		transform: translate(-50%,-50%);
+		border-radius: 44px;
+		box-shadow: 0px 0px 20px gray;
+	}
+
+	div.iphone-bg {
+		width: 320px;
+		height: 680px;
+		background:red;
+		border-radius: 33px;
+		background: #3D0A80; 
+		background: -webkit-linear-gradient(left top, #153771, #431271); 
+		background: -o-linear-gradient(bottom right, #153771, #431271); 
+		background: -moz-linear-gradient(bottom right, #153771, #431271); 
+		background: linear-gradient(to bottom right, #153771, #431271); 
+	}	
+
+	div.notch {
+		background-color: #151515;
+		width: 175px;
+		height: 22px;
+		margin-left: auto;
+		margin-right: auto;
+		border-bottom-right-radius: 16px;
+		border-bottom-left-radius: 16px;
+	}
+
+	div.content {
+		width: 300px; 
+		height: auto;
+		margin-left: auto;
+		margin-right: auto;
+		margin-top: 10px;
+		background-color: white;
+		border-radius: 20px;
+	}
+
+	div.logo {
+		width: 54px; 
+		height: 54px;
+		margin-left: auto;
+		margin-right: auto;
+		border-radius: 100px;
+		background-color: #E3E4E3;
+	}
+
+	h2.question {
+		padding: 0px 12px 0px 12px;
+		margin: none;
+		text-align: center;
+		color: #151515;
+		line-height: 1.618rem;
+		font-weight: 500;
+	}
+
+	div.answer {
+		height: 54px;
+		background-color: white;
+		border-radius: 100px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #E3E4E3;
+		width: 280px;
+		margin-left: auto;
+		margin-right: auto;
+		margin-bottom: 5px;
+	}
+
+	p.answer_text {
+		padding-left: 20px;
+		font-size: 1.09rem;
+	}
+
+	div.correct_answer {
+		background-color: #1AC653;
+	}
+
+	span.answer_count {
+		margin-left: 10px;
+		color: gray;
+		font-size: 0.8rem;
+	}
+
+	</style>
+</head>
+<body>
+
+	<div class="iphone">
+		<div class="iphone-bg">
+			<div class="left-status"></div>
+			<div class="notch"></div>
+			<div class="content">
+				<br>
+				<div class="logo"></div>
+				<h2 class="question" id="question">Loading...</h2>
+				<br>
+				<div class="answer" id="ans_1_button"><p class="answer_text"><span id="ans_1"></span><span class="answer_count" id="ans_1_count"></span></p></div>
+				<div class="answer" id="ans_2_button"><p class="answer_text"><span id="ans_2"></span><span class="answer_count" id="ans_2_count"></span></p></div>
+				<div class="answer" id="ans_3_button"><p class="answer_text"><span id="ans_3"></span><span class="answer_count" id="ans_3_count"></span></p></div>
+				<br>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://www.gstatic.com/firebasejs/4.7.0/firebase.js"></script>
+	<script>
+		// Initialize Firebase
+		var config = {
+			apiKey: "AIzaSyAa2V18tz3kXIiMgjdAOocnr20TdS8MFH8",
+			authDomain: "hq-hack.firebaseapp.com",
+			databaseURL: "https://hq-hack.firebaseio.com",
+			projectId: "hq-hack",
+			storageBucket: "hq-hack.appspot.com",
+			messagingSenderId: "489673622585"
+		};
+		firebase.initializeApp(config);
+	</script>
+
+	<script type="text/javascript">
+	
+	window.onload = function() {
+		var questionRef = firebase.database().ref('q1/');
+		questionRef.on('value', function(snapshot) {
+			console.log(newData = snapshot.val())
+			var question = document.getElementById('question');
+			var ans1 = document.getElementById('ans_1');
+			var ans2 = document.getElementById('ans_2');
+			var ans3 = document.getElementById('ans_3');
+
+			var ans1Count = document.getElementById('ans_1_count');
+			var ans2Count = document.getElementById('ans_2_count');
+			var ans3Count = document.getElementById('ans_3_count');
+
+			question.innerHTML = newData.question
+			ans1.innerHTML = newData.ans_1
+			ans2.innerHTML = newData.ans_2
+			ans3.innerHTML = newData.ans_3
+			ans1Count.innerHTML = newData.ans_1_count
+			ans2Count.innerHTML = newData.ans_2_count
+			ans3Count.innerHTML = newData.ans_3_count
+
+			ans1Button = document.getElementById("ans_1_button")
+			ans2Button = document.getElementById("ans_2_button")
+			ans3Button = document.getElementById("ans_3_button")
+
+			ans1Button.classList.remove("correct_answer")
+			ans2Button.classList.remove("correct_answer")
+			ans3Button.classList.remove("correct_answer")
+
+			var correctId = newData.correct_ans
+			var correctAnswer = document.getElementById(correctId + "_button")
+			correctAnswer.classList.add("correct_answer")
+
+
+		});
+	}
+
+
+
+	</script>
+
+</body>
+
+
+</html>
+

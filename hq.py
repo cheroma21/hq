@@ -18,13 +18,24 @@ class colors:
 
 
 def get_screenshot(img_name):
+
+	""" 
+		Grabs a screenshot of the question. To mirror your iphone on your computer open quicktime and initiate a screen recording on your mac
+	"""
+
 	print "grabbing screenshot..."
-	
-	call(["screencapture","-R", "300,320,256,256", img_name])
-	# call(["screencapture","-R", "14,190,445,480", img_name])
+	# call(["screencapture","-R", "300,320,256,256", img_name]) # youtube
+	call(["screencapture","-R", "14,190,445,480", img_name]) # live
 	call(["sips","-Z","350", img_name])
 
 def run_ocr(img_name):
+	
+	"""
+		Runs OCR on the grabbed screenshot
+
+	"""
+
+
 	print "running OCR..."
 	client = vision.ImageAnnotatorClient()
 
@@ -62,6 +73,12 @@ def run_ocr(img_name):
 	}
 
 def google(q_list, num):
+
+	"""
+		given a list of queries, this function Google's them as a concatenated string.
+		
+	"""
+
 	params = {"q":" ".join(q_list), "num":num}
 	url_params = urllib.urlencode(params)
 	google_url = "https://www.google.com/search?" + url_params
@@ -75,6 +92,16 @@ def google(q_list, num):
 	return text
 
 def rank_answers(question_block):
+
+	"""
+		Ranks answers based on how many times they show up in google's top 50 results. 
+		
+		If the word " not " is in the question is reverses them. 
+		If theres a tie breaker it google the questions with the answers
+
+	"""
+
+
 	print "rankings answers..."
 	
 	question = question_block["question"]
@@ -121,6 +148,13 @@ def rank_answers(question_block):
 	return results
 
 def print_question_block(question_block):
+
+	""" 
+		Prints the q to the terminal
+
+	"""
+
+
 	print "\n"
 	print "Q: ", question_block["question"]
 	print "1: ", question_block["ans_1"]
@@ -131,6 +165,11 @@ def print_question_block(question_block):
 	
 
 def save_question_block(question_block):
+
+	""" 
+		saves the q to a file
+
+	"""
 
 	question = question_block["question"].replace(",", "").replace("\"", "").replace("\'", "")
 	ans_1 = question_block["ans_1"].replace(",", "").replace("\"", "").replace("\'", "")
@@ -143,7 +182,10 @@ def save_question_block(question_block):
 
 def print_results(results):
 
-	# print results
+	""" 
+		Prints the results
+
+	"""
 
 	print "\n"
 
@@ -168,6 +210,11 @@ def print_results(results):
 
 def sync_questions(question_block):
 
+	""" 
+		uploads question data to firebase
+	
+	"""
+
 	data = {
 		"question": question_block["question"], 
 		"ans_1": question_block["ans_1"], 
@@ -186,6 +233,10 @@ def sync_questions(question_block):
 
 def sync_results(question_block, results):
 
+	""" 
+		uploads results data to firebase (after googling)
+	
+	"""
 	
 	to_check = max(results, key= lambda x: x["count"])
 

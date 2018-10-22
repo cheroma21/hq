@@ -1,8 +1,5 @@
 # HQ Answers
 
-See a demo here: https://youtu.be/Xzgw3kH8ZcI
-Check out the site here: http://jakemor.com/hq
-
 Feel free to fork this project!
 
 ## About

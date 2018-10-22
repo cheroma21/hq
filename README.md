@@ -37,7 +37,3 @@ This website is NOT to be used during a live game. It's purpose is to show how p
 
 Update: After some research I noticed that Toby Miller published a post on medium on Nov. 14th which uses similar techniques. Check out his great post here: https://medium.com/@tobymellor/hq-trivia-using-bots-to-win-money-from-online-game-shows-ce2a1b11828b
 
-## Get in Touch
-
-jakemny@gmail.com
-www.jakemor.com

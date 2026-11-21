@@ -99,7 +99,7 @@ window.setup = function (data) {
   TOP_FROM = topFor(D.mode === 'intro' ? nTo : nFrom);
   TOP_TO = topFor(nTo);
   TITLE_TOP = TOP_FROM; ROW_TOP = TITLE_TOP + 130;
-  OUT = D.duration - 0.8;
+  OUT = D.noOutro ? 1e9 : D.duration - 0.8;
 
   title = document.createElement('div');
   title.className = 'title';
@@ -249,8 +249,9 @@ function renderUpdate(t) {
     if (r.delta) {
       const bp = easeOutBack(prog(t, T_BADGE, T_BADGE + 0.35));
       const bo = Math.min(prog(t, T_BADGE, T_BADGE + 0.15), op);
+      const bf = D.fadeBadgesAt ? 1 - prog(t, D.fadeBadgesAt, D.fadeBadgesAt + 0.3) : 1; // chained clips: clear badges before the next question
       r.delta.style.top = (slotY(s) + 8) + 'px';
-      r.delta.style.opacity = bo;
+      r.delta.style.opacity = bo * bf;
       r.delta.style.zIndex = r.el.style.zIndex;
       r.delta.style.transform = `translateY(${-pout * 50}px) scale(${0.4 + 0.6 * bp})`;
     }

@@ -24,6 +24,8 @@ and remove the green with Color & Effects → Chroma Key.
 2. Run `node leaderboard/make.js <question>`. This writes `videos/Leaderboard_Q<n>_greenscreen.mp4`.
    - `--alpha` writes a transparent ProRes 4444 `.mov` instead.
    - `--preview <photo.jpg>` also writes a preview over a photo, for checking.
+3. To join several questions into one continuous clip (single fade-out at the end), run
+   `node leaderboard/make.js chain 16,18,21,23`. This writes `videos/Leaderboard_Q15-Q23_greenscreen.mp4`.
 
 ## How the clips play
 - **Question 1:** teams scroll up into place, then Hybrid D's bar turns black.

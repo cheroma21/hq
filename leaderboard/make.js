@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // Build the leaderboard clip for one question.
 //   node leaderboard/make.js <question> [--alpha] [--preview <background.jpg>] [--data <file.json>]
+//   node leaderboard/make.js chain 16,18,21,23   one continuous clip through several questions
+//                                               -> Leaderboard_Q<first-1>-Q<last>_greenscreen.mp4
 // Output (in leaderboard/videos/):
 //   Leaderboard_Q<n>_greenscreen.mp4   (default, H.264 on #00FF00 for LumaFusion Chroma Key)
 //   Leaderboard_Q<n>_alpha.mov         (--alpha, ProRes 4444 with transparency)
@@ -10,7 +12,8 @@ const { execFileSync } = require('child_process');
 const fs = require('fs'), path = require('path'), os = require('os');
 
 const args = process.argv.slice(2);
-const Q = parseInt(args[0], 10);
+const CHAIN = args[0] === 'chain' ? args[1].split(',').map(Number) : null;
+const Q = CHAIN ? CHAIN[CHAIN.length - 1] : parseInt(args[0], 10);
 if (!Q) { console.error('usage: make.js <question> [--alpha] [--preview bg.jpg] [--data file.json]'); process.exit(1); }
 const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? (args[i + 1] ?? true) : null; };
 const HERE = __dirname;
@@ -40,7 +43,7 @@ function standingsAfter(n, prevOrder) {
   return { totals, order, rank };
 }
 
-function buildData() {
+function buildData(Q) {
   const green = !opt('--alpha') || opt('--green');
   let prev = null, cur = null;
   for (let q = 1; q <= Q; q++) { prev = cur; cur = standingsAfter(q, prev && prev.order); }
@@ -87,16 +90,25 @@ function buildData() {
 
 // ---------- render ----------
 (async () => {
-  if (Q > 1 && (cfg.questions[Q] || []).length === 0) {
+  if (!CHAIN && Q > 1 && (cfg.questions[Q] || []).length === 0) {
     console.log(`Question ${Q} has no placings: no clip (the next clip starts from the last board shown).`);
     return;
   }
-  const data = buildData();
-  if (opt("--dump")) { console.log(JSON.stringify(data)); return; }
-  console.log(`Question ${Q} standings:`);
-  data.rows.filter(r => r.toSlot != null).sort((a, b) => a.toSlot - b.toSlot)
-    .forEach(r => console.log(`  ${String(r.toRank).padStart(2)}  ${r.name.padEnd(36)} ${String(r.toScore).padStart(3)}` +
-      (data.mode === 'update' ? `  (+${r.delta}, was ${r.fromRank ?? '-'})` : '')));
+  const qs = CHAIN || [Q];
+  const MID_SEG = 3.2; // chained segments: move + short hold, no outro
+  const segs = qs.map((q, i) => {
+    const d = buildData(q);
+    if (i < qs.length - 1) { d.duration = MID_SEG; d.noOutro = true; d.fadeBadgesAt = MID_SEG - 0.3; }
+    return d;
+  });
+  const data = segs[segs.length - 1];
+  if (opt("--dump")) { console.log(JSON.stringify(segs)); return; }
+  for (const d of segs) {
+    console.log(`Question ${d.question} standings:`);
+    d.rows.filter(r => r.toSlot != null).sort((a, b) => a.toSlot - b.toSlot)
+      .forEach(r => console.log(`  ${String(r.toRank).padStart(2)}  ${r.name.padEnd(36)} ${String(r.toScore).padStart(3)}` +
+        (d.mode === 'update' ? `  (+${r.delta}, was ${r.fromRank ?? '-'})` : '')));
+  }
 
   const outDir = path.join(HERE, 'videos'); fs.mkdirSync(outDir, { recursive: true });
   const frames = fs.mkdtempSync(path.join(os.tmpdir(), 'lb-frames-'));
@@ -104,17 +116,20 @@ function buildData() {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   await page.goto('file://' + path.join(HERE, 'template.html'));
   await page.evaluate(() => document.fonts.ready);
-  await page.evaluate((d) => window.setup(d), data);
-  const n = Math.round(data.duration * FPS);
-  for (let i = 0; i < n; i++) {
-    await page.evaluate((t) => window.render(t), i / FPS);
-    await page.screenshot({ path: path.join(frames, `f${String(i).padStart(4, '0')}.png`), omitBackground: !data.green });
+  let f = 0;
+  for (const d of segs) {
+    await page.evaluate((x) => window.setup(x), d);
+    const n = Math.round(d.duration * FPS);
+    for (let i = 0; i < n; i++) {
+      await page.evaluate((t) => window.render(t), i / FPS);
+      await page.screenshot({ path: path.join(frames, `f${String(f++).padStart(4, '0')}.png`), omitBackground: !d.green });
+    }
   }
   await browser.close();
 
   const ff = (a) => execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...a], { stdio: 'inherit' });
   const pattern = path.join(frames, 'f%04d.png');
-  const base = path.join(outDir, `Leaderboard_Q${Q}`);
+  const base = path.join(outDir, CHAIN ? `Leaderboard_Q${segs[0].prevQuestion}-Q${Q}` : `Leaderboard_Q${Q}`);
   if (data.green) {
     ff(['-framerate', FPS, '-i', pattern, '-vf', 'format=yuv420p', '-c:v', 'libx264', '-crf', '12',
         '-preset', 'slow', '-movflags', '+faststart', `${base}_greenscreen.mp4`].map(String));

@@ -59,7 +59,7 @@ const TEAMS = [
   { rank: "4",  name: "Negreet High School A",            color: "#d9b13b", score: "2" },
   { rank: "5",  name: "First Baptist Church School A",    color: "#d0566e", score: "1" },
 ];
-const DURATION = 10;   // seconds
+const DURATION = 5;   // seconds
 // ------------------------------------------------------
 
 const stage = document.getElementById('stage');
@@ -96,29 +96,29 @@ const easeOutBack = (x) => { const c1 = 1.7, c3 = c1 + 1; return 1 + c3 * Math.p
 const mix = (a, b, k) => Math.round(a + (b - a) * k);
 const mixColor = (c1, c2, k) => `rgb(${mix(c1[0],c2[0],k)},${mix(c1[1],c2[1],k)},${mix(c1[2],c2[2],k)})`;
 
-const OUT = DURATION - 1.3;   // outro start
+const OUT = DURATION - 0.8;   // outro start
 
 function render(t) {
   // Title: pop in, fade out
-  const ti = easeOutBack(prog(t, 0.0, 0.55));
-  const to = easeIn(prog(t, OUT + 0.5, OUT + 0.9));
-  title.style.opacity = Math.min(prog(t, 0, 0.25), 1 - to);
+  const ti = easeOutBack(prog(t, 0.0, 0.4));
+  const to = easeIn(prog(t, OUT + 0.35, OUT + 0.65));
+  title.style.opacity = Math.min(prog(t, 0, 0.2), 1 - to);
   title.style.transform = `translateX(-50%) scale(${0.6 + 0.4 * ti - 0.1 * to})`;
 
   rows.forEach(r => {
     // scroll up into place, staggered (top row first)
-    const a = 0.35 + r.i * 0.14;
-    const pin = easeOut(prog(t, a, a + 0.6));
+    const a = 0.2 + r.i * 0.09;
+    const pin = easeOut(prog(t, a, a + 0.45));
     // scroll up and out, staggered
-    const b = OUT + r.i * 0.08;
-    const pout = easeIn(prog(t, b, b + 0.45));
+    const b = OUT + r.i * 0.05;
+    const pout = easeIn(prog(t, b, b + 0.35));
     const y = (1 - pin) * 140 - pout * 50;
     let scale = 1;
 
     let hk = 0;
     if (r.t.highlight) {
       // highlight transition (like the Norway bar)
-      const hs = 1.75;
+      const hs = 1.0;
       hk = easeOut(prog(t, hs, hs + 0.35));
       const pop = prog(t, hs, hs + 0.6);
       scale = 1 + 0.06 * Math.sin(Math.PI * Math.min(pop, 1)) * (pop < 1 ? 1 : 0) + 0.035 * hk;
@@ -129,13 +129,13 @@ function render(t) {
       r.name.style.color = mixColor([17,17,17],[255,255,255],hk);
       r.score.style.color = mixColor([17,17,17],[255,255,255],hk);
       // shine sweeps across shortly after, and again mid-hold
-      const sw1 = prog(t, hs + 0.25, hs + 0.95);
-      const sw2 = prog(t, 5.2, 5.9);
+      const sw1 = prog(t, hs + 0.2, hs + 0.8);
+      const sw2 = prog(t, 2.9, 3.5);
       const sw = (sw1 > 0 && sw1 < 1) ? sw1 : sw2;
       r.shine.style.left = (-200 + sw * 1400) + 'px';
       r.el.style.zIndex = 5;
     }
-    r.el.style.opacity = Math.min(prog(t, a, a + 0.25), 1 - pout);
+    r.el.style.opacity = Math.min(prog(t, a, a + 0.2), 1 - pout);
     r.el.style.transform = `translateY(${y}px) scale(${scale})`;
   });
 }

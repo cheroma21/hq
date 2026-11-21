@@ -44,6 +44,24 @@
         "team": "Hybrid D",
         "place": 1
       }
+    ],
+    "3": [
+      {
+        "team": "Hybrid D",
+        "place": 1
+      },
+      {
+        "team": "Bolton Academy A",
+        "place": 2
+      },
+      {
+        "team": "NSU Middle Lab A",
+        "place": 3
+      },
+      {
+        "team": "Negreet High School A",
+        "place": 4
+      }
     ]
   }
 }

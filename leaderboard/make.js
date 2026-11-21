@@ -46,9 +46,14 @@ function buildData() {
   for (let q = 1; q <= Q; q++) { prev = cur; cur = standingsAfter(q, prev && prev.order); }
   const maxRows = cfg.max_rows || 8;
   const colorOf = (() => {
+    // teams without a set color get one from the palette, in the order they first placed,
+    // so a team keeps the same color in every clip
     let k = 0; const assigned = {};
+    Object.keys(cfg.questions).sort((x, y) => x - y).forEach(q => cfg.questions[q].forEach(({ team }) => {
+      if (!cfg.colors[team] && !assigned[team]) assigned[team] = PALETTE[k++ % PALETTE.length];
+    }));
     return (name) => {
-      let c = cfg.colors[name] || assigned[name] || (assigned[name] = PALETTE[k++ % PALETTE.length]);
+      let c = cfg.colors[name] || assigned[name] || '#7a8a99';
       if (green) { // darken green-ish chips so the chroma key doesn't eat them
         const [r, g, b] = [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
         if (g > r * 1.2 && g > b * 1.2) c = '#' + [r, g, b].map(v => Math.round(v * 0.55).toString(16).padStart(2, '0')).join('');

@@ -40,9 +40,9 @@
     background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%);
     transform: skewX(-20deg);
   }
-  .row .badge {
-    margin-left: auto; margin-right: 26px; font-weight: 900; font-size: 26px; color: #ffd23f;
-    letter-spacing: 1px; opacity: 0; font-size: 40px;
+  .row .score {
+    margin-left: auto; margin-right: 34px; font-weight: 900; font-size: 36px; color: #111;
+    font-variant-numeric: tabular-nums; letter-spacing: .5px;
   }
 </style>
 </head>
@@ -53,11 +53,11 @@
 const TITLE_TAG = "LEADERBOARD";
 const TITLE_Q   = "AFTER QUESTION 1";
 const TEAMS = [
-  { rank: "1",  name: "Mangham High School A",           color: "#3fae5a" },
-  { rank: "2",  name: "Natchitoches Central High School", color: "#4aa3df" },
-  { rank: "3",  name: "Hybrid D",                         color: "#9db7cf", highlight: true },
-  { rank: "4",  name: "Negreet High School A",            color: "#d9b13b" },
-  { rank: "6",  name: "First Baptist Church School A",    color: "#d0566e" },
+  { rank: "1",  name: "Mangham High School A",           color: "#3fae5a", score: "00" },
+  { rank: "2",  name: "Natchitoches Central High School", color: "#4aa3df", score: "00" },
+  { rank: "3",  name: "Hybrid D",                         color: "#9db7cf", score: "00", highlight: true },
+  { rank: "4",  name: "Negreet High School A",            color: "#d9b13b", score: "00" },
+  { rank: "6",  name: "First Baptist Church School A",    color: "#d0566e", score: "00" },
 ];
 const DURATION = 10;   // seconds
 // ------------------------------------------------------
@@ -79,13 +79,13 @@ const rows = TEAMS.map((t, i) => {
       <div class="rank">${t.rank}</div>
       <div class="chip" style="background:${t.color}"></div>
       <div class="name">${t.name}</div>
-      ${t.highlight ? '<div class="badge">★</div>' : ''}
+      <div class="score">${t.score}</div>
     </div>`;
   stage.appendChild(el);
   return { el, t, i,
     bg: el.querySelector('.bg'), shine: el.querySelector('.shine'),
     rank: el.querySelector('.rank'), name: el.querySelector('.name'),
-    badge: el.querySelector('.badge') };
+    score: el.querySelector('.score') };
 });
 
 const clamp = (x) => Math.max(0, Math.min(1, x));
@@ -106,13 +106,13 @@ function render(t) {
   title.style.transform = `translateX(-50%) scale(${0.6 + 0.4 * ti - 0.1 * to})`;
 
   rows.forEach(r => {
-    // slide in from left, staggered
-    const a = 0.35 + r.i * 0.12;
-    const pin = easeOut(prog(t, a, a + 0.55));
-    // slide out to right, staggered
+    // scroll up into place, staggered (top row first)
+    const a = 0.35 + r.i * 0.14;
+    const pin = easeOut(prog(t, a, a + 0.6));
+    // scroll up and out, staggered
     const b = OUT + r.i * 0.08;
     const pout = easeIn(prog(t, b, b + 0.45));
-    const x = (1 - pin) * -260 + pout * 320;
+    const y = (1 - pin) * 140 - pout * 50;
     let scale = 1;
 
     let hk = 0;
@@ -127,18 +127,16 @@ function render(t) {
       r.rank.style.color = mixColor([17,17,17],[255,255,255],hk);
       r.rank.style.borderRightColor = mixColor([227,227,227],[60,60,66],hk);
       r.name.style.color = mixColor([17,17,17],[255,255,255],hk);
-      r.badge.style.opacity = easeOut(prog(t, hs + 0.3, hs + 0.6));
-      r.badge.style.transform = `scale(${0.5 + 0.5 * easeOutBack(prog(t, hs + 0.3, hs + 0.7))})`;
+      r.score.style.color = mixColor([17,17,17],[255,255,255],hk);
       // shine sweeps across shortly after, and again mid-hold
       const sw1 = prog(t, hs + 0.25, hs + 0.95);
       const sw2 = prog(t, 5.2, 5.9);
       const sw = (sw1 > 0 && sw1 < 1) ? sw1 : sw2;
       r.shine.style.left = (-200 + sw * 1400) + 'px';
-      r.el.style.boxShadow = `0 6px 16px rgba(0,0,0,.35), 0 0 ${28*hk}px rgba(255,210,63,${0.55*hk})`;
       r.el.style.zIndex = 5;
     }
     r.el.style.opacity = Math.min(prog(t, a, a + 0.25), 1 - pout);
-    r.el.style.transform = `translateX(${x}px) scale(${scale})`;
+    r.el.style.transform = `translateY(${y}px) scale(${scale})`;
   });
 }
 window.render = render;

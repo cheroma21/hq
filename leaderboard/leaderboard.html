@@ -63,6 +63,15 @@ const DURATION = 5;   // seconds
 // ------------------------------------------------------
 
 const stage = document.getElementById('stage');
+// ?green => solid green-screen background, no soft shadows (clean chroma key)
+const GREEN = new URLSearchParams(location.search).has('green');
+if (GREEN) {
+  document.body.style.background = '#00FF00';
+  const st = document.createElement('style');
+  st.textContent = '.row{box-shadow:none!important}.title{filter:none!important}';
+  TEAMS.forEach(t => { if (t.color === '#3fae5a') t.color = '#1f5e35'; }); // keep green chip from being keyed out
+  document.head.appendChild(st);
+}
 const ROW_TOP = 380, ROW_GAP = 86;
 
 const title = document.createElement('div');

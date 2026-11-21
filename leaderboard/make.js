@@ -78,7 +78,9 @@ function buildData(Q) {
   // questions where nobody placed get no clip, so the title rolls from the last question that had one
   let prevQ = Q - 1;
   while (prevQ > 1 && (cfg.questions[prevQ] || []).length === 0) prevQ--;
-  return { mode: 'update', question: Q, prevQuestion: prevQ, duration: cfg.duration_seconds, green,
+  // on-screen question numbers (the competition skipped some questions, so later ones are renumbered)
+  const label = (q) => (cfg.question_labels || {})[q] ?? q;
+  return { mode: 'update', question: label(Q), prevQuestion: label(prevQ), duration: cfg.duration_seconds, green,
     rows: names.map(name => {
       const fs_ = shownPrev.indexOf(name), ts = shownNow.indexOf(name);
       return { name: shown(name), color: colorOf(name), highlight: name === cfg.highlight,
@@ -103,10 +105,9 @@ function buildData(Q) {
   });
   if (CHAIN) { // the highlighted team's points line up as a streak of badges across the chain
     const hd = segs.map(d => (d.rows.find(r => r.highlight && r.toSlot != null) || {}).delta ?? 0);
-    const allFive = hd.every(v => v === 5) && hd.length >= 2;
     segs.forEach((d, i) => {
       d.streak = { earned: hd.slice(0, i),
-        caption: (i === segs.length - 1 && allFive) ? `${hd.length} STRAIGHT +5s TO FINISH` : null };
+        caption: null };
     });
   }
   const data = segs[segs.length - 1];
@@ -137,7 +138,7 @@ function buildData(Q) {
 
   const ff = (a) => execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...a], { stdio: 'inherit' });
   const pattern = path.join(frames, 'f%04d.png');
-  const base = path.join(outDir, CHAIN ? `Leaderboard_Q${segs[0].prevQuestion}-Q${Q}` : `Leaderboard_Q${Q}`);
+  const base = path.join(outDir, CHAIN ? `Leaderboard_Q${segs[0].prevQuestion}-Q${segs[segs.length - 1].question}` : `Leaderboard_Q${Q}`);
   if (data.green) {
     ff(['-framerate', FPS, '-i', pattern, '-vf', 'format=yuv420p', '-c:v', 'libx264', '-crf', '12',
         '-preset', 'slow', '-movflags', '+faststart', `${base}_greenscreen.mp4`].map(String));

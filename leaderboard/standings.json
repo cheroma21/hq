@@ -335,5 +335,10 @@
       "name": "Natchitoches Central High School A",
       "from_question": 12
     }
+  },
+  "question_labels": {
+    "18": 17,
+    "21": 18,
+    "23": 19
   }
 }

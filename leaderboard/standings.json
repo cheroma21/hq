@@ -108,6 +108,29 @@
         "team": "Grant Junior High School A",
         "place": 3
       }
+    ],
+    "7": [],
+    "8": [
+      {
+        "team": "Greenacres Middle School A",
+        "place": 1
+      },
+      {
+        "team": "Mangham High School B",
+        "place": 2
+      },
+      {
+        "team": "Hybrid H",
+        "place": 3
+      },
+      {
+        "team": "Pitkin High School A",
+        "place": 4
+      },
+      {
+        "team": "Pitkin High School B",
+        "place": 5
+      }
     ]
   }
 }

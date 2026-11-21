@@ -3,6 +3,8 @@
 //   node leaderboard/make.js <question> [--alpha] [--preview <background.jpg>] [--data <file.json>]
 //   node leaderboard/make.js chain 16,18,21,23   one continuous clip through several questions
 //                                               -> Leaderboard_Q<first-1>-Q<last>_greenscreen.mp4
+//   node leaderboard/make.js chain 16,18,21,23 --separate   same, but one clip per question
+//                                               -> Leaderboard_Q<n>_streak_greenscreen.mp4
 // Output (in leaderboard/videos/):
 //   Leaderboard_Q<n>_greenscreen.mp4   (default, H.264 on #00FF00 for LumaFusion Chroma Key)
 //   Leaderboard_Q<n>_alpha.mov         (--alpha, ProRes 4444 with transparency)
@@ -15,6 +17,7 @@ const args = process.argv.slice(2);
 const CHAIN = args[0] === 'chain' ? args[1].split(',').map(Number) : null;
 const Q = CHAIN ? CHAIN[CHAIN.length - 1] : parseInt(args[0], 10);
 if (!Q) { console.error('usage: make.js <question> [--alpha] [--preview bg.jpg] [--data file.json]'); process.exit(1); }
+const SEPARATE = process.argv.includes('--separate');
 const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? (args[i + 1] ?? true) : null; };
 const HERE = __dirname;
 const cfg = JSON.parse(fs.readFileSync(opt('--data') || path.join(HERE, 'standings.json'), 'utf8'));
@@ -100,7 +103,7 @@ function buildData(Q) {
   const MID_SEG = 3.2; // chained segments: move + short hold, no outro
   const segs = qs.map((q, i) => {
     const d = buildData(q);
-    if (i < qs.length - 1) { d.duration = MID_SEG; d.noOutro = true; d.fadeBadgesAt = MID_SEG - 0.3; }
+    if (!SEPARATE && i < qs.length - 1) { d.duration = MID_SEG; d.noOutro = true; d.fadeBadgesAt = MID_SEG - 0.3; }
     return d;
   });
   if (CHAIN) { // the highlighted team's points line up as a streak of badges across the chain
@@ -120,13 +123,18 @@ function buildData(Q) {
   }
 
   const outDir = path.join(HERE, 'videos'); fs.mkdirSync(outDir, { recursive: true });
+  // --separate: each question in the chain becomes its own clip (streak badges carried over)
+  const groups = SEPARATE ? segs.map(d => [d]) : [segs];
+  for (const group of groups) {
+  const base = path.join(outDir, SEPARATE ? `Leaderboard_Q${group[0].question}_streak`
+    : CHAIN ? `Leaderboard_Q${segs[0].prevQuestion}-Q${segs[segs.length - 1].question}` : `Leaderboard_Q${Q}`);
   const frames = fs.mkdtempSync(path.join(os.tmpdir(), 'lb-frames-'));
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   await page.goto('file://' + path.join(HERE, 'template.html'));
   await page.evaluate(() => document.fonts.ready);
   let f = 0;
-  for (const d of segs) {
+  for (const d of group) {
     await page.evaluate((x) => window.setup(x), d);
     const n = Math.round(d.duration * FPS);
     for (let i = 0; i < n; i++) {
@@ -138,7 +146,6 @@ function buildData(Q) {
 
   const ff = (a) => execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...a], { stdio: 'inherit' });
   const pattern = path.join(frames, 'f%04d.png');
-  const base = path.join(outDir, CHAIN ? `Leaderboard_Q${segs[0].prevQuestion}-Q${segs[segs.length - 1].question}` : `Leaderboard_Q${Q}`);
   if (data.green) {
     ff(['-framerate', FPS, '-i', pattern, '-vf', 'format=yuv420p', '-c:v', 'libx264', '-crf', '12',
         '-preset', 'slow', '-movflags', '+faststart', `${base}_greenscreen.mp4`].map(String));
@@ -157,4 +164,5 @@ function buildData(Q) {
     console.log(`wrote ${base}_preview.mp4`);
   }
   fs.rmSync(frames, { recursive: true, force: true });
+  }
 })();

@@ -1,0 +1,263 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!--
+  Leaderboard animation template. Driven by make.js, which computes the
+  standings from standings.json and calls window.setup(data), then
+  window.render(t) for every frame. Do not edit team data here.
+-->
+<style>
+  html, body { margin: 0; width: 1920px; height: 1080px; background: transparent; overflow: hidden; }
+  body { font-family: "Inter", sans-serif; }
+  #stage { position: absolute; inset: 0; }
+
+  .title {
+    position: absolute; left: 50%; height: 84px;
+    transform-origin: center center;
+    display: flex; align-items: center; filter: drop-shadow(0 8px 18px rgba(0,0,0,.45));
+  }
+  .title .tag {
+    background: #1f3a8a; color: #fff; font-weight: 900; font-size: 42px; letter-spacing: 2px;
+    padding: 0 34px; height: 84px; display: flex; align-items: center; border-radius: 16px 0 0 16px;
+  }
+  .title .q {
+    position: relative; overflow: hidden;
+    background: #fff; color: #1f3a8a; font-weight: 900; font-size: 42px; letter-spacing: 1px;
+    padding: 0 34px; height: 84px; display: flex; align-items: center; border-radius: 0 16px 16px 0;
+  }
+  .title .q span { display: block; white-space: nowrap; }
+  .title .q .next { position: absolute; left: 34px; top: 0; height: 84px; line-height: 84px; }
+
+  .row {
+    position: absolute; left: 50%; width: 1000px; height: 70px; margin-left: -500px;
+    border-radius: 35px; background: #fff; display: flex; align-items: center;
+    box-shadow: 0 6px 16px rgba(0,0,0,.35); overflow: hidden;
+  }
+  .row .rank {
+    width: 96px; height: 70px; display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 32px; color: #111; background: #fff;
+    border-right: 3px solid #e3e3e3; flex: none;
+  }
+  .row .chip { width: 14px; height: 40px; border-radius: 4px; margin: 0 22px 0 26px; flex: none; }
+  .row .name { font-weight: 800; font-size: 34px; color: #111; letter-spacing: .3px; white-space: nowrap; }
+  .row .bg { position: absolute; inset: 0; background: #0d0d0f; opacity: 0; border-radius: 35px; }
+  .row .content { position: relative; display: flex; align-items: center; width: 100%; height: 100%; }
+  .row .shine {
+    position: absolute; top: 0; bottom: 0; width: 180px; left: -200px;
+    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-20deg);
+  }
+  .row .score {
+    margin-left: auto; margin-right: 34px; font-weight: 900; font-size: 36px; color: #111;
+    font-variant-numeric: tabular-nums; letter-spacing: .5px;
+  }
+
+  /* points gained this question, shown beside the bar */
+  .delta {
+    position: absolute; left: 50%; margin-left: 516px; height: 54px; min-width: 86px; padding: 0 14px;
+    box-sizing: border-box; border-radius: 27px; background: #157a36; color: #fff;
+    font-weight: 900; font-size: 32px; display: flex; align-items: center; justify-content: center;
+    font-variant-numeric: tabular-nums; box-shadow: 0 6px 16px rgba(0,0,0,.35);
+  }
+  .delta.zero { background: #5b616b; }
+
+  body.green { background: #00FF00; }
+  body.green .row, body.green .delta { box-shadow: none; }
+  body.green .title { filter: none; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeIn  = (x) => x * x * x;
+const easeInOut = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const easeOutBack = (x) => { const c1 = 1.7, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const mix = (a, b, k) => Math.round(a + (b - a) * k);
+const mixColor = (c1, c2, k) => `rgb(${mix(c1[0],c2[0],k)},${mix(c1[1],c2[1],k)},${mix(c1[2],c2[2],k)})`;
+
+const ROW_GAP = 86;
+let D, title, qCur, qNext, rows, OUT, TITLE_TOP, ROW_TOP, N_SLOTS, TOP_FROM, TOP_TO, qBox, W_FROM, W_TO;
+
+// data = { mode: "intro"|"update", question, prevQuestion, duration, green,
+//          rows: [{ name, color, highlight, fromSlot|null, toSlot|null,
+//                   fromRank, toRank, fromScore, toScore, delta }] }
+window.setup = function (data) {
+  D = data;
+  if (D.green) document.body.classList.add('green');
+  const stage = document.getElementById('stage');
+  stage.innerHTML = '';
+
+  // board stays put up to 7 rows; beyond that it shifts up to fit
+  const topFor = (n) => 250 - Math.max(0, n - 7) * ROW_GAP;
+  const nFrom = D.rows.filter(r => r.fromSlot != null).length;
+  const nTo = D.rows.filter(r => r.toSlot != null).length;
+  N_SLOTS = Math.max(nFrom, nTo);
+  TOP_FROM = topFor(D.mode === 'intro' ? nTo : nFrom);
+  TOP_TO = topFor(nTo);
+  TITLE_TOP = TOP_FROM; ROW_TOP = TITLE_TOP + 130;
+  OUT = D.duration - 0.8;
+
+  title = document.createElement('div');
+  title.className = 'title';
+  title.style.top = TITLE_TOP + 'px';
+  const qText = (n) => `AFTER QUESTION ${n}`;
+  if (D.mode === 'intro') {
+    title.innerHTML = `<div class="tag">LEADERBOARD</div><div class="q"><span class="cur">${qText(D.question)}</span></div>`;
+  } else {
+    title.innerHTML = `<div class="tag">LEADERBOARD</div><div class="q"><span class="cur">${qText(D.prevQuestion)}</span><span class="next">${qText(D.question)}</span></div>`;
+  }
+  stage.appendChild(title);
+  qCur = title.querySelector('.cur'); qNext = title.querySelector('.next');
+  if (qNext) { // size the white box to the wider of the two labels
+    qBox = title.querySelector('.q');
+    W_FROM = qCur.offsetWidth; W_TO = qNext.offsetWidth;
+    qBox.style.width = W_FROM + 'px';
+  }
+
+  rows = D.rows.map((r, i) => {
+    const el = document.createElement('div');
+    el.className = 'row';
+    el.innerHTML = `<div class="bg"></div><div class="shine"></div>
+      <div class="content">
+        <div class="rank"></div>
+        <div class="chip" style="background:${r.color}"></div>
+        <div class="name">${r.name}</div>
+        <div class="score"></div>
+      </div>`;
+    stage.appendChild(el);
+    let delta = null;
+    if (D.mode === 'update' && r.toSlot != null) {
+      delta = document.createElement('div');
+      delta.className = 'delta' + (r.delta ? '' : ' zero');
+      delta.textContent = '+' + r.delta;
+      stage.appendChild(delta);
+    }
+    return { el, r, i, delta,
+      bg: el.querySelector('.bg'), shine: el.querySelector('.shine'),
+      rank: el.querySelector('.rank'), name: el.querySelector('.name'),
+      score: el.querySelector('.score') };
+  });
+};
+
+const slotY = (s) => ROW_TOP + s * ROW_GAP;
+
+function paintHighlight(r, hk) {
+  r.bg.style.opacity = hk;
+  r.rank.style.background = mixColor([255,255,255],[13,13,15],hk);
+  r.rank.style.color = mixColor([17,17,17],[255,255,255],hk);
+  r.rank.style.borderRightColor = mixColor([227,227,227],[60,60,66],hk);
+  r.name.style.color = mixColor([17,17,17],[255,255,255],hk);
+  r.score.style.color = mixColor([17,17,17],[255,255,255],hk);
+}
+
+// ---------- Q1: teams scroll up into place, highlighted team turns dark ----------
+function renderIntro(t) {
+  const ti = easeOutBack(prog(t, 0.0, 0.4));
+  const to = easeIn(prog(t, OUT + 0.35, OUT + 0.65));
+  title.style.opacity = Math.min(prog(t, 0, 0.2), 1 - to);
+  title.style.transform = `translateX(-50%) scale(${0.6 + 0.4 * ti - 0.1 * to})`;
+
+  rows.forEach(r => {
+    const s = r.r.toSlot;
+    r.el.style.top = slotY(s) + 'px';
+    r.rank.textContent = r.r.toRank;
+    r.score.textContent = r.r.toScore;
+    const a = 0.2 + s * 0.09;
+    const pin = easeOut(prog(t, a, a + 0.45));
+    const b = OUT + s * 0.05;
+    const pout = easeIn(prog(t, b, b + 0.35));
+    const y = (1 - pin) * 140 - pout * 50;
+    let scale = 1;
+    if (r.r.highlight) {
+      const hs = 1.0;
+      const hk = easeOut(prog(t, hs, hs + 0.35));
+      const pop = prog(t, hs, hs + 0.6);
+      scale = 1 + 0.06 * Math.sin(Math.PI * Math.min(pop, 1)) * (pop < 1 ? 1 : 0) + 0.035 * hk;
+      paintHighlight(r, hk);
+      const sw1 = prog(t, hs + 0.2, hs + 0.8);
+      const sw2 = prog(t, 2.9, 3.5);
+      const sw = (sw1 > 0 && sw1 < 1) ? sw1 : sw2;
+      r.shine.style.left = (-200 + sw * 1400) + 'px';
+      r.el.style.zIndex = 5;
+    }
+    r.el.style.opacity = Math.min(prog(t, a, a + 0.2), 1 - pout);
+    r.el.style.transform = `translateY(${y}px) scale(${scale})`;
+  });
+}
+
+// ---------- Q2+: start on previous standings, tiles re-order, points count up ----------
+// Timeline (seconds): 0 previous board on screen | 0.25-0.65 title rolls to new question
+// 0.5-0.9 "+N" badges pop | 0.9-2.0 tiles move & scores count | hold | outro
+const T_TITLE = 0.25, T_BADGE = 0.5, T_MOVE = 0.9, T_MOVE_END = 2.0;
+
+function renderUpdate(t) {
+  // title roll
+  const tr = easeInOut(prog(t, T_TITLE, T_TITLE + 0.4));
+  qCur.style.transform = `translateY(${-84 * tr}px)`; qCur.style.opacity = 1 - tr;
+  qNext.style.transform = `translateY(${84 * (1 - tr)}px)`; qNext.style.opacity = tr;
+  qBox.style.width = (W_FROM + (W_TO - W_FROM) * tr) + 'px';
+  const to = easeIn(prog(t, OUT + 0.35, OUT + 0.65));
+  title.style.opacity = 1 - to;
+  title.style.transform = `translateX(-50%) scale(${1 - 0.1 * to})`;
+
+  const below = N_SLOTS + 0.6; // off-board slot for teams entering / leaving
+  const mv = easeInOut(prog(t, T_MOVE, T_MOVE_END));
+  TITLE_TOP = TOP_FROM + (TOP_TO - TOP_FROM) * mv; ROW_TOP = TITLE_TOP + 130;
+  title.style.top = TITLE_TOP + 'px';
+  const cnt = easeOut(prog(t, T_MOVE, T_MOVE_END - 0.2));
+
+  rows.forEach(r => {
+    const { fromSlot, toSlot } = r.r;
+    const f = fromSlot ?? below, g = toSlot ?? below;
+    const s = f + (g - f) * mv;
+    r.el.style.top = slotY(s) + 'px';
+
+    const movingUp = g < f, moved = g !== f;
+    const lift = moved ? Math.sin(Math.PI * mv) : 0;
+    let scale = 1 + (movingUp ? 0.05 : 0) * lift;
+    r.el.style.zIndex = movingUp ? 20 + (N_SLOTS - g) : (r.r.highlight ? 10 : 1);
+
+    // entering / leaving fades
+    let op = 1;
+    if (fromSlot == null) op = prog(t, T_MOVE, T_MOVE + 0.4);
+    if (toSlot == null) op = 1 - prog(t, T_MOVE_END - 0.5, T_MOVE_END);
+
+    // outro: drift up and fade, staggered by final slot
+    const b = OUT + (toSlot ?? 0) * 0.05;
+    const pout = easeIn(prog(t, b, b + 0.35));
+    op = Math.min(op, 1 - pout);
+
+    r.score.textContent = Math.round(r.r.fromScore + (r.r.toScore - r.r.fromScore) * cnt);
+    r.rank.textContent = mv < 0.5 ? (r.r.fromRank ?? r.r.toRank) : (r.r.toRank ?? r.r.fromRank);
+
+    if (r.r.highlight) {
+      // already dark from previous question; shine sweeps once it settles
+      if (r.r.fromSlot == null) paintHighlight(r, easeOut(prog(t, T_MOVE_END, T_MOVE_END + 0.35)));
+      else paintHighlight(r, 1);
+      const sw = prog(t, T_MOVE_END, T_MOVE_END + 0.6);
+      r.shine.style.left = (-200 + sw * 1400) + 'px';
+      scale += 0.035;
+    }
+
+    r.el.style.opacity = op;
+    r.el.style.transform = `translateY(${-pout * 50}px) scale(${scale})`;
+
+    if (r.delta) {
+      const bp = easeOutBack(prog(t, T_BADGE, T_BADGE + 0.35));
+      const bo = Math.min(prog(t, T_BADGE, T_BADGE + 0.15), op);
+      r.delta.style.top = (slotY(s) + 8) + 'px';
+      r.delta.style.opacity = bo;
+      r.delta.style.zIndex = r.el.style.zIndex;
+      r.delta.style.transform = `translateY(${-pout * 50}px) scale(${0.4 + 0.6 * bp})`;
+    }
+  });
+}
+
+window.render = (t) => (D.mode === 'intro' ? renderIntro : renderUpdate)(t);
+</script>
+</body>
+</html>

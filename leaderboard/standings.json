@@ -252,6 +252,28 @@
         "team": "Hybrid D",
         "place": 3
       }
+    ],
+    "16": [
+      {
+        "team": "Hybrid D",
+        "place": 1
+      },
+      {
+        "team": "Bolton Academy A",
+        "place": 2
+      },
+      {
+        "team": "Greenacres Middle School A",
+        "place": 3
+      },
+      {
+        "team": "Grant Junior High School A",
+        "place": 4
+      },
+      {
+        "team": "Bolton Academy B",
+        "place": 5
+      }
     ]
   },
   "display_names": {

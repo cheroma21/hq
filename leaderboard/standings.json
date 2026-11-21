@@ -131,6 +131,28 @@
         "team": "Pitkin High School B",
         "place": 5
       }
+    ],
+    "9": [
+      {
+        "team": "Hybrid D",
+        "place": 1
+      },
+      {
+        "team": "First Baptist Church School A",
+        "place": 2
+      },
+      {
+        "team": "NSU Middle Lab A",
+        "place": 3
+      },
+      {
+        "team": "Bolton Academy B",
+        "place": 4
+      },
+      {
+        "team": "Negreet High School B",
+        "place": 5
+      }
     ]
   }
 }

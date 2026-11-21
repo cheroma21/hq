@@ -1,6 +1,12 @@
 {
   "highlight": "Hybrid D",
-  "points_by_place": [5, 4, 3, 2, 1],
+  "points_by_place": [
+    5,
+    4,
+    3,
+    2,
+    1
+  ],
   "max_rows": 8,
   "duration_seconds": 5,
   "colors": {
@@ -12,11 +18,32 @@
   },
   "questions": {
     "1": [
-      { "team": "Mangham High School A", "place": 1 },
-      { "team": "Natchitoches Central High School", "place": 2 },
-      { "team": "Hybrid D", "place": 3 },
-      { "team": "Negreet High School A", "place": 4 },
-      { "team": "First Baptist Church School A", "place": 5 }
+      {
+        "team": "Mangham High School A",
+        "place": 1
+      },
+      {
+        "team": "Natchitoches Central High School",
+        "place": 2
+      },
+      {
+        "team": "Hybrid D",
+        "place": 3
+      },
+      {
+        "team": "Negreet High School A",
+        "place": 4
+      },
+      {
+        "team": "First Baptist Church School A",
+        "place": 5
+      }
+    ],
+    "2": [
+      {
+        "team": "Hybrid D",
+        "place": 1
+      }
     ]
   }
 }

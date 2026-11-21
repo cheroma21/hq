@@ -83,6 +83,7 @@ function buildData() {
 // ---------- render ----------
 (async () => {
   const data = buildData();
+  if (opt("--dump")) { console.log(JSON.stringify(data)); return; }
   console.log(`Question ${Q} standings:`);
   data.rows.filter(r => r.toSlot != null).sort((a, b) => a.toSlot - b.toSlot)
     .forEach(r => console.log(`  ${String(r.toRank).padStart(2)}  ${r.name.padEnd(36)} ${String(r.toScore).padStart(3)}` +

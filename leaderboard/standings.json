@@ -238,6 +238,20 @@
         "team": "Grant Junior High School A",
         "place": 5
       }
+    ],
+    "15": [
+      {
+        "team": "NSU Middle Lab A",
+        "place": 1
+      },
+      {
+        "team": "Natchitoches Central High School B",
+        "place": 2
+      },
+      {
+        "team": "Hybrid D",
+        "place": 3
+      }
     ]
   },
   "display_names": {

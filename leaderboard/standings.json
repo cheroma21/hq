@@ -175,6 +175,35 @@
         "team": "Hybrid D",
         "place": 5
       }
+    ],
+    "11": [],
+    "12": [
+      {
+        "team": "Hybrid D",
+        "place": 1
+      },
+      {
+        "team": "Greenacres Middle School A",
+        "place": 2
+      },
+      {
+        "team": "Natchitoches Central High School",
+        "place": 3
+      },
+      {
+        "team": "Bolton Academy A",
+        "place": 4
+      },
+      {
+        "team": "Natchitoches Central High School B",
+        "place": 5
+      }
     ]
+  },
+  "display_names": {
+    "Natchitoches Central High School": {
+      "name": "Natchitoches Central High School A",
+      "from_question": 12
+    }
   }
 }

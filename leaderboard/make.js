@@ -61,10 +61,12 @@ function buildData() {
       return c;
     };
   })();
+  // optional on-screen renames from a given question on (totals stay keyed by the original name)
+  const shown = (name) => { const r = (cfg.display_names || {})[name]; return r && Q >= r.from_question ? r.name : name; };
   const shownNow = cur.order.slice(0, maxRows);
   if (Q === 1) {
     return { mode: 'intro', question: Q, duration: cfg.duration_seconds, green,
-      rows: shownNow.map((name, i) => ({ name, color: colorOf(name), highlight: name === cfg.highlight,
+      rows: shownNow.map((name, i) => ({ name: shown(name), color: colorOf(name), highlight: name === cfg.highlight,
         fromSlot: null, toSlot: i, toRank: cur.rank[name], toScore: cur.totals[name] })) };
   }
   const shownPrev = prev.order.slice(0, maxRows);
@@ -76,7 +78,7 @@ function buildData() {
   return { mode: 'update', question: Q, prevQuestion: prevQ, duration: cfg.duration_seconds, green,
     rows: names.map(name => {
       const fs_ = shownPrev.indexOf(name), ts = shownNow.indexOf(name);
-      return { name, color: colorOf(name), highlight: name === cfg.highlight,
+      return { name: shown(name), color: colorOf(name), highlight: name === cfg.highlight,
         fromSlot: fs_ < 0 ? null : fs_, toSlot: ts < 0 ? null : ts,
         fromRank: prev.rank[name] ?? null, toRank: cur.rank[name],
         fromScore: prev.totals[name] ?? 0, toScore: cur.totals[name], delta: res[name] ?? 0 };

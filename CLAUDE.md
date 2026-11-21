@@ -6,6 +6,7 @@ to `leaderboard/standings.json` under the next question number. Then run
 `node leaderboard/make.js <n>` and send them `leaderboard/videos/Leaderboard_Q<n>_greenscreen.mp4`.
 Report the running totals table that the script prints. See `leaderboard/README.md`.
 - Scoring: 1st = 5, 2nd = 4, 3rd = 3, 4th = 2, 5th = 1. Totals add up across questions. Hybrid D is always highlighted. Show only the top 5 (`max_rows: 5`).
-- Keep team names spelled exactly as in earlier questions. Ask the user if a screenshot is unreadable.
+- ~40 teams compete. Each screenshot shows only that question's top 5; record every team listed (new teams get added, everyone else gets 0 that question).
+- Keep team names spelled exactly as in earlier questions. If a name looks like a variant of an existing team, or a screenshot is unreadable, ask the user instead of guessing.
 - The user's workflow: green-screen MP4 → iOS Photos → LumaFusion Chroma Key.
 - `.mov` files are git-ignored (too big for GitHub); commit the MP4s.

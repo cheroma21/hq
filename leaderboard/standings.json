@@ -94,6 +94,20 @@
         "team": "Greenacres Middle School A",
         "place": 2
       }
+    ],
+    "6": [
+      {
+        "team": "Hybrid D",
+        "place": 1
+      },
+      {
+        "team": "Bolton Academy A",
+        "place": 2
+      },
+      {
+        "team": "Grant Junior High School A",
+        "place": 3
+      }
     ]
   }
 }

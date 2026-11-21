@@ -26,6 +26,8 @@ and remove the green with Color & Effects → Chroma Key.
    - `--preview <photo.jpg>` also writes a preview over a photo, for checking.
 3. To join several questions into one continuous clip (single fade-out at the end), run
    `node leaderboard/make.js chain 16,18,21,23`. This writes `videos/Leaderboard_Q15-Q23_greenscreen.mp4`.
+   In a chain, the highlighted team's badges stay on screen and line up (gold for +5), with a
+   "N STRAIGHT +5s TO FINISH" caption at the end when every step was +5.
 
 ## How the clips play
 - **Question 1:** teams scroll up into place, then Hybrid D's bar turns black.

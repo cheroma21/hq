@@ -101,6 +101,14 @@ function buildData(Q) {
     if (i < qs.length - 1) { d.duration = MID_SEG; d.noOutro = true; d.fadeBadgesAt = MID_SEG - 0.3; }
     return d;
   });
+  if (CHAIN) { // the highlighted team's points line up as a streak of badges across the chain
+    const hd = segs.map(d => (d.rows.find(r => r.highlight && r.toSlot != null) || {}).delta ?? 0);
+    const allFive = hd.every(v => v === 5) && hd.length >= 2;
+    segs.forEach((d, i) => {
+      d.streak = { earned: hd.slice(0, i),
+        caption: (i === segs.length - 1 && allFive) ? `${hd.length} STRAIGHT +5s TO FINISH` : null };
+    });
+  }
   const data = segs[segs.length - 1];
   if (opt("--dump")) { console.log(JSON.stringify(segs)); return; }
   for (const d of segs) {

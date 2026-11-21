@@ -61,6 +61,13 @@
     font-variant-numeric: tabular-nums; box-shadow: 0 6px 16px rgba(0,0,0,.35);
   }
   .delta.zero { background: #5b616b; }
+  /* streak (chained clips): the highlighted team's badges stay and line up in gold */
+  .delta.gold { background: #f5b800; color: #111; }
+  .ring { position: absolute; left: 50%; height: 54px; border-radius: 27px; border: 5px solid #f5b800;
+    box-sizing: border-box; pointer-events: none; }
+  .streak-cap { position: absolute; left: 50%; margin-left: 516px; height: 34px; line-height: 34px;
+    font-weight: 900; font-size: 26px; letter-spacing: 1.5px; color: #f5b800; white-space: nowrap;
+    -webkit-text-stroke: 1px #3a2a00; }
 
   body.green { background: #00FF00; }
   body.green .row, body.green .delta { box-shadow: none; }
@@ -129,14 +136,31 @@ window.setup = function (data) {
         <div class="score"></div>
       </div>`;
     stage.appendChild(el);
-    let delta = null;
+    let delta = null, chips = [], ring = null, cap = null;
+    const streak = (D.streak && r.highlight) ? D.streak : null;
     if (D.mode === 'update' && r.toSlot != null) {
       delta = document.createElement('div');
-      delta.className = 'delta' + (r.delta ? '' : ' zero');
+      delta.className = 'delta' + (r.delta ? '' : ' zero') + (streak && r.delta === 5 ? ' gold' : '');
       delta.textContent = '+' + r.delta;
       stage.appendChild(delta);
     }
-    return { el, r, i, delta,
+    if (streak && delta) {
+      const GAP = 96;
+      chips = streak.earned.map((v, k) => {
+        const c = document.createElement('div');
+        c.className = 'delta' + (v === 5 ? ' gold' : '') + (v ? '' : ' zero');
+        c.textContent = '+' + v; c.style.marginLeft = (516 + k * GAP) + 'px';
+        stage.appendChild(c); return c;
+      });
+      delta.style.marginLeft = (516 + streak.earned.length * GAP) + 'px';
+      ring = document.createElement('div'); ring.className = 'ring';
+      ring.style.marginLeft = delta.style.marginLeft; stage.appendChild(ring);
+      if (streak.caption) {
+        cap = document.createElement('div'); cap.className = 'streak-cap';
+        cap.textContent = streak.caption; stage.appendChild(cap);
+      }
+    }
+    return { el, r, i, delta, chips, ring, cap, streak,
       bg: el.querySelector('.bg'), shine: el.querySelector('.shine'),
       rank: el.querySelector('.rank'), name: el.querySelector('.name'),
       score: el.querySelector('.score') };
@@ -249,11 +273,32 @@ function renderUpdate(t) {
     if (r.delta) {
       const bp = easeOutBack(prog(t, T_BADGE, T_BADGE + 0.35));
       const bo = Math.min(prog(t, T_BADGE, T_BADGE + 0.15), op);
-      const bf = D.fadeBadgesAt ? 1 - prog(t, D.fadeBadgesAt, D.fadeBadgesAt + 0.3) : 1; // chained clips: clear badges before the next question
-      r.delta.style.top = (slotY(s) + 8) + 'px';
+      // chained clips: clear badges before the next question (the streak team's badges stay)
+      const bf = (D.fadeBadgesAt && !r.streak) ? 1 - prog(t, D.fadeBadgesAt, D.fadeBadgesAt + 0.3) : 1;
+      const top = slotY(s) + 8, lift = `translateY(${-pout * 50}px)`;
+      // streak: extra pulse after the pop
+      const pulse = r.streak ? 0.28 * Math.sin(Math.PI * prog(t, T_BADGE + 0.35, T_BADGE + 0.8)) : 0;
+      r.delta.style.top = top + 'px';
       r.delta.style.opacity = bo * bf;
       r.delta.style.zIndex = r.el.style.zIndex;
-      r.delta.style.transform = `translateY(${-pout * 50}px) scale(${0.4 + 0.6 * bp})`;
+      r.delta.style.transform = `${lift} scale(${0.4 + 0.6 * bp + pulse})`;
+      r.chips.forEach(c => {
+        c.style.top = top + 'px'; c.style.opacity = op; c.style.zIndex = r.el.style.zIndex; c.style.transform = lift;
+      });
+      if (r.ring) {
+        const rp = prog(t, T_BADGE + 0.35, T_BADGE + 1.0);
+        r.ring.style.top = top + 'px';
+        r.ring.style.width = r.delta.offsetWidth + 'px';
+        r.ring.style.opacity = (rp > 0 && rp < 1) ? (1 - rp) * op : 0;
+        r.ring.style.transform = `${lift} scale(${1 + 0.9 * easeOut(rp)})`;
+      }
+      if (r.cap) {
+        const cp = easeOutBack(prog(t, T_MOVE_END + 0.2, T_MOVE_END + 0.6));
+        r.cap.style.top = (slotY(s) - 44) + 'px';
+        r.cap.style.opacity = Math.min(prog(t, T_MOVE_END + 0.2, T_MOVE_END + 0.35), op);
+        r.cap.style.transform = `${lift} scale(${0.5 + 0.5 * cp})`;
+        r.cap.style.transformOrigin = 'left center';
+      }
     }
   });
 }

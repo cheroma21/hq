@@ -83,7 +83,9 @@ function buildData(Q) {
   while (prevQ > 1 && (cfg.questions[prevQ] || []).length === 0) prevQ--;
   // on-screen question numbers (the competition skipped some questions, so later ones are renumbered)
   const label = (q) => (cfg.question_labels || {})[q] ?? q;
-  return { mode: 'update', question: label(Q), prevQuestion: label(prevQ), duration: cfg.duration_seconds, green,
+  // optional custom title text for a question (e.g. the last one shows "FINAL SCORE")
+  const titleOf = (q) => (cfg.question_titles || {})[q] ?? null;
+  return { mode: 'update', question: label(Q), prevQuestion: label(prevQ), title: titleOf(Q), prevTitle: titleOf(prevQ), duration: cfg.duration_seconds, green,
     rows: names.map(name => {
       const fs_ = shownPrev.indexOf(name), ts = shownNow.indexOf(name);
       return { name: shown(name), color: colorOf(name), highlight: name === cfg.highlight,

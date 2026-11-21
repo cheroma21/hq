@@ -115,7 +115,7 @@ window.setup = function (data) {
   if (D.mode === 'intro') {
     title.innerHTML = `<div class="tag">LEADERBOARD</div><div class="q"><span class="cur">${qText(D.question)}</span></div>`;
   } else {
-    title.innerHTML = `<div class="tag">LEADERBOARD</div><div class="q"><span class="cur">${qText(D.prevQuestion)}</span><span class="next">${qText(D.question)}</span></div>`;
+    title.innerHTML = `<div class="tag">LEADERBOARD</div><div class="q"><span class="cur">${D.prevTitle || qText(D.prevQuestion)}</span><span class="next">${D.title || qText(D.question)}</span></div>`;
   }
   stage.appendChild(title);
   qCur = title.querySelector('.cur'); qNext = title.querySelector('.next');

@@ -198,6 +198,24 @@
         "team": "Natchitoches Central High School B",
         "place": 5
       }
+    ],
+    "13": [
+      {
+        "team": "Hybrid D",
+        "place": 1
+      },
+      {
+        "team": "Bolton Academy A",
+        "place": 2
+      },
+      {
+        "team": "Natchitoches Central High School",
+        "place": 3
+      },
+      {
+        "team": "Greenacres Middle School A",
+        "place": 4
+      }
     ]
   },
   "display_names": {

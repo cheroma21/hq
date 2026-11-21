@@ -84,6 +84,16 @@
         "team": "Pitkin High School B",
         "place": 5
       }
+    ],
+    "5": [
+      {
+        "team": "Hybrid D",
+        "place": 1
+      },
+      {
+        "team": "Greenacres Middle School A",
+        "place": 2
+      }
     ]
   }
 }

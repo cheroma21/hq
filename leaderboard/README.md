@@ -31,6 +31,7 @@ and remove the green with Color & Effects → Chroma Key.
   to the new question number, and a "+N" badge pops up beside each bar (green, or gray for +0).
   The tiles then move to their new positions, Norway-style, with the teams moving up passing
   in front, while the totals count up. After a hold, the board drifts up and fades out.
+- A question where nobody placed is recorded as `"7": []` and gets no clip; the next clip opens on the last board shown and rolls the title from that question (e.g. 6 → 8).
 - Ranks use competition ranking: tied totals share a number (1, 2, 2, 4).
 - The board shows only the top 5 (`max_rows`). A team entering the top 5 slides in from below; a team dropping out slides down and fades away. Teams below 5th still keep their running totals.
 - `highlight` (Hybrid D) always gets the black bar.

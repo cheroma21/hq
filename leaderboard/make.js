@@ -70,7 +70,10 @@ function buildData() {
   const shownPrev = prev.order.slice(0, maxRows);
   const names = [...new Set([...shownPrev, ...shownNow])];
   const res = Object.fromEntries(cfg.questions[Q].map(r => [r.team, pts(r.place)]));
-  return { mode: 'update', question: Q, prevQuestion: Q - 1, duration: cfg.duration_seconds, green,
+  // questions where nobody placed get no clip, so the title rolls from the last question that had one
+  let prevQ = Q - 1;
+  while (prevQ > 1 && (cfg.questions[prevQ] || []).length === 0) prevQ--;
+  return { mode: 'update', question: Q, prevQuestion: prevQ, duration: cfg.duration_seconds, green,
     rows: names.map(name => {
       const fs_ = shownPrev.indexOf(name), ts = shownNow.indexOf(name);
       return { name, color: colorOf(name), highlight: name === cfg.highlight,
@@ -82,6 +85,10 @@ function buildData() {
 
 // ---------- render ----------
 (async () => {
+  if (Q > 1 && (cfg.questions[Q] || []).length === 0) {
+    console.log(`Question ${Q} has no placings: no clip (the next clip starts from the last board shown).`);
+    return;
+  }
   const data = buildData();
   if (opt("--dump")) { console.log(JSON.stringify(data)); return; }
   console.log(`Question ${Q} standings:`);

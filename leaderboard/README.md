@@ -32,7 +32,7 @@ and remove the green with Color & Effects → Chroma Key.
   The tiles then move to their new positions, Norway-style, with the teams moving up passing
   in front, while the totals count up. After a hold, the board drifts up and fades out.
 - Ranks use competition ranking: tied totals share a number (1, 2, 2, 4).
-- The board shows up to `max_rows` teams (8). A new team slides in from below.
+- The board shows only the top 5 (`max_rows`). A team entering the top 5 slides in from below; a team dropping out slides down and fades away. Teams below 5th still keep their running totals.
 - `highlight` (Hybrid D) always gets the black bar.
 - In green-screen mode, soft shadows are off and green-ish color tabs are darkened so the key stays clean.
 

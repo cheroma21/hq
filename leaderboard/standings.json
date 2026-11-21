@@ -153,6 +153,28 @@
         "team": "Negreet High School B",
         "place": 5
       }
+    ],
+    "10": [
+      {
+        "team": "Bolton Academy A",
+        "place": 1
+      },
+      {
+        "team": "Bolton Academy B",
+        "place": 2
+      },
+      {
+        "team": "NSU Middle Lab A",
+        "place": 3
+      },
+      {
+        "team": "Grant Junior High School A",
+        "place": 4
+      },
+      {
+        "team": "Hybrid D",
+        "place": 5
+      }
     ]
   }
 }
